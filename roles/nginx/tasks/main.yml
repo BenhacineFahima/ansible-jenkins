@@ -51,7 +51,7 @@
               try_files $uri $uri/ =404;
           }
       }
-  force: yes
+    force: yes
 
 - name: Ensure nginx is started and enabled
   service:
