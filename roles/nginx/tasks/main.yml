@@ -29,6 +29,14 @@
     name: nginx
     state: latest
 
+- name: Ensure /etc/nginx directory exists
+  file:
+    path: /etc/nginx
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
 - name: Ensure nginx main configuration file exists
   copy:
     dest: /etc/nginx/nginx.conf
@@ -50,6 +58,9 @@
   file:
     path: /etc/nginx/sites-available
     state: directory
+    owner: root
+    group: root
+    mode: '0755'
 
 - name: Ensure default config file exists with port 8083
   copy:
@@ -86,4 +97,3 @@
     name: nginx
     state: started
     enabled: yes
-
