@@ -1,99 +1,19 @@
----
-- name: Stop nginx if running
-  service:
-    name: nginx
-    state: stopped
-  ignore_errors: yes
-
-- name: Remove old nginx package
-  apt:
-    name: nginx
-    state: absent
-    purge: yes
-  ignore_errors: yes
-  register: nginx_removed
-
-- name: Remove old nginx configuration files
-  file:
-    path: /etc/nginx
-    state: absent
-  when: nginx_removed is changed
-  ignore_errors: yes
-
-- name: Update apt cache
-  apt:
+- name: install nginx
+  apt: 
+    name:
+      - nginx
+    state: present
     update_cache: yes
+    cache_valid_time: 3600
+  become: yes
 
-- name: Install latest nginx
-  apt:
-    name: nginx
-    state: latest
-
-- name: Ensure /etc/nginx directory exists
-  file:
-    path: /etc/nginx
-    state: directory
-    owner: root
-    group: root
-    mode: '0755'
-
-- name: Ensure nginx main configuration file exists
-  copy:
-    dest: /etc/nginx/nginx.conf
-    content: |
-      user www-data;
-      worker_processes auto;
-      pid /run/nginx.pid;
-      events { worker_connections 768; }
-      http {
-          include       /etc/nginx/mime.types;
-          default_type  application/octet-stream;
-          sendfile        on;
-          keepalive_timeout  65;
-          include /etc/nginx/sites-enabled/*;
-      }
-    force: yes
-
-- name: Ensure nginx default site directory exists
-  file:
-    path: /etc/nginx/sites-available
-    state: directory
-    owner: root
-    group: root
-    mode: '0755'
-
-- name: Ensure default config file exists with port 8083
-  copy:
-    dest: /etc/nginx/sites-available/default
-    content: |
-      server {
-          listen 8083 default_server;
-          listen [::]:8083 default_server;
-
-          root /var/www/html;
-
-          index index.html index.htm;
-
-          server_name _;
-
-          location / {
-              try_files $uri $uri/ =404;
-          }
-      }
-    force: yes
-
-- name: Test nginx configuration
-  command: nginx -t
-  register: nginx_test
-  failed_when: false
-  changed_when: false
-- name: Fail if nginx configuration is invalid
-  fail:
-    msg: "Nginx configuration test failed:\n{{ nginx_test.stderr }}"
-  when: nginx_test.rc != 0
-
-- name: Ensure nginx is started and enabled
+- name: start nginx
   service:
     name: nginx
     state: started
-    enabled: yes
+  become: yes
+
+- name: index
+  template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
