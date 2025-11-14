@@ -1,23 +1,48 @@
-- name: Stop nginx before changing config
-  service:
-    name: nginx
-    state: stopped
-  ignore_errors: yes
+---
+- name: Reinstall and configure Nginx
+  hosts: all
+  become: yes
+  tasks:
 
-- name: Remove old listen directives
-  replace:
-    path: /etc/nginx/sites-available/default
-    regexp: '^\s*listen.*;'
-    replace: ''
+    - name: Stop nginx if running
+      service:
+        name: nginx
+        state: stopped
+      ignore_errors: yes
 
-- name: Set listen port to 8083
-  lineinfile:
-    path: /etc/nginx/sites-available/default
-    line: 'listen 8083 default_server;'
+    - name: Remove old nginx package
+      apt:
+        name: nginx
+        state: absent
+        purge: yes
+      ignore_errors: yes
+      register: nginx_removed
 
-- name: Start nginx
-  service:
-    name: nginx
-    state: started
+    - name: Remove old nginx configuration files
+      file:
+        path: /etc/nginx
+        state: absent
+      when: nginx_removed is changed
+      ignore_errors: yes
 
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install latest nginx
+      apt:
+        name: nginx
+        state: latest
+
+    - name: Configure nginx to listen on port 8083
+      lineinfile:
+        path: /etc/nginx/sites-available/default
+        regexp: '^\s*listen.*;'
+        line: 'listen 8083 default_server;'
+
+    - name: Ensure nginx is started and enabled
+      service:
+        name: nginx
+        state: started
+        enabled: yes
 
