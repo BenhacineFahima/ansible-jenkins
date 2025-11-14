@@ -85,8 +85,8 @@
 - name: Test nginx configuration
   command: nginx -t
   register: nginx_test
-  ignore_errors: yes
-
+  failed_when: false
+  changed_when: false
 - name: Fail if nginx configuration is invalid
   fail:
     msg: "Nginx configuration test failed:\n{{ nginx_test.stderr }}"
