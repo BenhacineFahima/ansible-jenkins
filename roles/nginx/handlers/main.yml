@@ -1,2 +1,6 @@
 ---
-# handlers file for curl
+- name: restart nginx
+  systemd:
+    name: nginx
+    state: restarted
+  become: yes
