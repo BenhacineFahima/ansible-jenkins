@@ -14,11 +14,11 @@
   ignore_errors: yes
   become: yes
 
-- name: Configure nginx to listen on port 8080 instead of 80
+- name: Configure nginx to listen on port 8083 instead of 80
   lineinfile:
     path: /etc/nginx/sites-available/default
     regexp: 'listen 80 default_server;'
-    line: 'listen 8080 default_server;'
+    line: 'listen 8083 default_server;'
   notify: restart nginx
 
 - name: Start nginx
