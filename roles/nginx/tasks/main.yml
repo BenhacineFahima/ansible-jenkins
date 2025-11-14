@@ -1,3 +1,4 @@
+---
 - name: Stop nginx if running
   service:
     name: nginx
@@ -28,11 +29,29 @@
     name: nginx
     state: latest
 
-- name: Configure nginx to listen on port 8083
-  lineinfile:
-    path: /etc/nginx/sites-available/default
-    regexp: '^\s*listen.*;'
-    line: 'listen 8083 default_server;'
+- name: Ensure nginx default site directory exists
+  file:
+    path: /etc/nginx/sites-available
+    state: directory
+
+- name: Ensure default config file exists with port 8083
+  copy:
+    dest: /etc/nginx/sites-available/default
+    content: |
+      server {
+          listen 8083 default_server;
+          listen [::]:8083 default_server;
+
+          root /var/www/html;
+          index index.html index.htm index.nginx-debian.html;
+
+          server_name _;
+
+          location / {
+              try_files $uri $uri/ =404;
+          }
+      }
+  force: yes
 
 - name: Ensure nginx is started and enabled
   service:
