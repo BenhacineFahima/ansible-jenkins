@@ -1,26 +1,23 @@
----
-- name: Install nginx
-  apt:
-    name: nginx
-    state: present
-    update_cache: yes
-
-- name: Stop nginx if already running
+- name: Stop nginx before changing config
   service:
     name: nginx
     state: stopped
   ignore_errors: yes
 
-- name: Configure nginx to listen on port 8083
+- name: Remove old listen directives
+  replace:
+    path: /etc/nginx/sites-available/default
+    regexp: '^\s*listen.*;'
+    replace: ''
+
+- name: Set listen port to 8083
   lineinfile:
     path: /etc/nginx/sites-available/default
-    regexp: '^listen '
     line: 'listen 8083 default_server;'
 
 - name: Start nginx
   service:
     name: nginx
     state: started
-
 
 
