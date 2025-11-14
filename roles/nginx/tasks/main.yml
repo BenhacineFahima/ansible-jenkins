@@ -1,20 +1,36 @@
-- name: install nginx
-  apt: 
-    name:
-      - nginx
+---
+- name: Ensure nginx is installed
+  apt:
+    name: nginx
     state: present
     update_cache: yes
     cache_valid_time: 3600
   become: yes
 
-- name: start nginx
-  service:
+- name: Stop nginx if already running (prevent port conflicts)
+  systemd:
     name: nginx
-    state: started
+    state: stopped
+  ignore_errors: yes
   become: yes
 
-- name: index
+- name: Configure nginx to listen on port 8080 instead of 80
+  lineinfile:
+    path: /etc/nginx/sites-available/default
+    regexp: 'listen 80 default_server;'
+    line: 'listen 8080 default_server;'
+  notify: restart nginx
+
+- name: Start nginx
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes
+  become: yes
+
+- name: Deploy custom index page
   template:
     src: index.html.j2
     dest: /var/www/html/index.html
+  become: yes
 
